@@ -1,0 +1,48 @@
+
+<!DOCTYPE html>
+<html>
+<head><title>Java CRUD</title></head>
+<body>
+<h1>My CRUD App</h1>
+<input id="name" placeholder="Item name">
+<button onclick="add()">Add</button>
+<ul id="list"></ul>
+<script>
+    const api = "/api/items";
+    async function load() {
+      const data = await (await fetch(api)).json();
+      const list = document.getElementById("list");
+      list.replaceChildren();
+      for (const [id, name] of Object.entries(data)) {
+        const li = document.createElement("li");
+        li.textContent = name + " ";
+        const edit = document.createElement("button");
+        edit.textContent = "Edit";
+        edit.onclick = async () => {
+          const value = prompt("New name:", name);
+          if (value === null) return;
+          await fetch(`${api}/${id}?name=${encodeURIComponent(value)}`,
+            {method:"PUT"});
+          load();
+        };
+        const del = document.createElement("button");
+        del.textContent = "Delete";
+        del.onclick = async () => {
+          await fetch(`${api}/${id}`, {method:"DELETE"});
+          load();
+        };
+        li.append(edit, del);
+        list.append(li);
+      }
+    }
+    async function add() {
+      const input = document.getElementById("name");
+      await fetch(`${api}?name=${encodeURIComponent(input.value)}`,
+        {method:"POST"});
+      input.value = "";
+      load();
+    }
+    load();
+</script>
+</body>
+</html>
